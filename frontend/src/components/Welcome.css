@@ -1,0 +1,256 @@
+:root {
+    --primary: #2563eb;
+    /* blue-600 */
+    --primary-light: #60a5fa;
+    /* blue-400 */
+    --secondary: #9333ea;
+    /* purple-600 */
+    --accent: #f472b6;
+    /* pink-400 */
+    --bg-primary: #ffffff;
+    --text-primary: #111827;
+    /* gray-900 */
+    --text-secondary: #4b5563;
+    /* gray-600 */
+    --text-muted: #9ca3af;
+    /* gray-400 */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --radius-lg: 0.75rem;
+}
+
+.dark {
+    --bg-primary: #111827;
+    /* gray-900 */
+    --text-primary: #f9fafb;
+    /* gray-50 */
+    --text-secondary: #d1d5db;
+    /* gray-300 */
+    --text-muted: #9ca3af;
+}
+
+.welcome-container {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-primary);
+    padding: var(--spacing-xl);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Animated Background Blobs */
+.welcome-bg-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.6;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: blobFloat 20s infinite alternate;
+}
+
+.blob:nth-child(1) {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    right: -50px;
+    background: var(--primary-light);
+    animation-duration: 15s;
+}
+
+.blob:nth-child(2) {
+    width: 300px;
+    height: 300px;
+    bottom: 50px;
+    left: -100px;
+    background: var(--secondary);
+    animation-duration: 18s;
+}
+
+.blob:nth-child(3) {
+    width: 500px;
+    height: 500px;
+    top: 40%;
+    left: 30%;
+    background: var(--accent);
+    opacity: 0.3;
+}
+
+@keyframes blobFloat {
+    from {
+        transform: translate(0, 0) scale(1);
+    }
+
+    to {
+        transform: translate(50px, 100px) scale(1.1);
+    }
+}
+
+.welcome-content {
+    position: relative;
+    z-index: 10;
+    max-width: 1000px;
+    width: 100%;
+    text-align: center;
+}
+
+.welcome-title {
+    font-size: 5rem;
+    font-weight: 800;
+    margin-bottom: var(--spacing-xs);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary-light) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.welcome-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-2xl);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Clock Styling */
+.clock-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.digital-clock {
+    font-size: 6rem;
+    font-weight: 300;
+    font-family: 'Inter', monospace;
+    letter-spacing: -2px;
+    line-height: 1;
+}
+
+.date-display {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: var(--spacing-sm);
+}
+
+/* Login Cards */
+.login-options-grid {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-2xl);
+}
+
+.login-option-card {
+    padding: var(--spacing-2xl);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.5);
+    /* Glassmorphismish */
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .login-option-card {
+    background: rgba(31, 41, 55, 0.5);
+    /* Dark mode glass */
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.login-option-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 3.5rem;
+    }
+
+    .digital-clock {
+        font-size: 4rem;
+    }
+
+    .login-options-grid {
+        flex-direction: column;
+    }
+
+    .welcome-subtitle {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-title {
+        font-size: 2.5rem;
+    }
+
+    .digital-clock {
+        font-size: 3rem;
+    }
+}
+
+/* Login Form Styling */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    position: relative;
+    z-index: 10;
+}
+
+.dark .glass-panel {
+    background: rgba(31, 41, 55, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-input {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(209, 213, 219, 0.5);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.dark .glass-input {
+    background: rgba(17, 24, 39, 0.5);
+    border-color: rgba(75, 85, 99, 0.5);
+    color: var(--text-primary);
+}
+
+.glass-input:focus {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.dark .glass-input:focus {
+    background: rgba(17, 24, 39, 0.8);
+    border-color: var(--primary);
+}
