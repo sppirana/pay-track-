@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Customer, Transaction, View, ShopSettings } from '../types';
+import { useAuth } from './AuthContext';
 
 interface AppContextType {
   customers: Customer[];
@@ -8,7 +9,7 @@ interface AppContextType {
   selectedCustomerId: string | null;
   setCurrentView: (view: View) => void;
   setSelectedCustomerId: (id: string | null) => void;
-  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'>) => Promise<void>;
+  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'>, token?: string) => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
   updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
@@ -25,6 +26,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const API_URL = 'http://localhost:5000/api';
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { token, isAuthenticated } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [currentView, setCurrentView] = useState<View>(() => {
@@ -46,7 +48,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Helper function to get auth headers
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
@@ -89,10 +90,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Fetch initial data when authentication is available
   useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+    if (!token || !isAuthenticated) {
+      setCustomers([]);
+      setTransactions([]);
+      return;
+    }
 
+    const fetchData = async () => {
       try {
         const [custRes, txRes] = await Promise.all([
           fetch(`${API_URL}/customers`, { headers: getAuthHeaders() }),
@@ -115,7 +119,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     fetchData();
-  }, []);
+  }, [token, isAuthenticated]);
 
   const addCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>) => {
     try {

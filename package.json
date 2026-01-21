@@ -1,0 +1,11 @@
+{
+    "name": "cms-root",
+    "private": true,
+    "scripts": {
+        "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+        "build": "cd frontend && npm run build && cd ../backend && npm run build"
+    },
+    "engines": {
+        "node": "18.x"
+    }
+}

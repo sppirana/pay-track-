@@ -7,6 +7,8 @@ const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const api_1 = __importDefault(require("./routes/api"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const admin_1 = __importDefault(require("./routes/admin"));
@@ -21,6 +23,24 @@ app.use(express_1.default.json());
 app.use('/api/auth', auth_1.default);
 app.use('/api/admin', admin_1.default);
 app.use('/api', api_1.default);
+// Serve Frontend Static Files
+const frontendPath = path_1.default.join(__dirname, '../../frontend/dist');
+const indexHtmlPath = path_1.default.join(frontendPath, 'index.html');
+if (fs_1.default.existsSync(frontendPath)) {
+    app.use(express_1.default.static(frontendPath));
+    // Handle SPA routing - serve index.html for all non-API routes
+    app.get('*', (req, res) => {
+        if (fs_1.default.existsSync(indexHtmlPath)) {
+            res.sendFile(indexHtmlPath);
+        }
+        else {
+            res.status(404).send('Frontend build not found (index.html missing)');
+        }
+    });
+}
+else {
+    console.warn(`Frontend build not found at ${frontendPath}. Run 'npm run build' in frontend directory.`);
+}
 // Database Connection
 mongoose_1.default.connect(MONGODB_URI)
     .then(() => {
