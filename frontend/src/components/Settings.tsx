@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { Save, Lock, Store, Pencil, X } from 'lucide-react';
 
 export default function Settings() {
-    const { shopSettings, updateShopSettings, adminPassword, updateAdminPassword } = useApp();
+    const { shopSettings, updateShopSettings } = useApp();
+    const { user, changePassword } = useAuth();
 
     const [settingsForm, setSettingsForm] = useState(shopSettings);
     const [isEditing, setIsEditing] = useState(false);
@@ -24,26 +26,31 @@ export default function Settings() {
         setTimeout(() => setStatus(null), 3000);
     };
 
-    const handlePasswordSubmit = (e: React.FormEvent) => {
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (passwordForm.currentPassword !== adminPassword) {
-            setStatus({ type: 'error', message: 'Incorrect current password' });
-            return;
-        }
+
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
             setStatus({ type: 'error', message: 'New passwords do not match' });
             return;
         }
-        if (passwordForm.newPassword.length < 4) {
-            setStatus({ type: 'error', message: 'Password must be at least 4 characters' });
+        if (passwordForm.newPassword.length < 8) {
+            setStatus({ type: 'error', message: 'Password must be at least 8 characters' });
             return;
         }
 
-        updateAdminPassword(passwordForm.newPassword);
-        setIsEditingPassword(false);
-        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        setStatus({ type: 'success', message: 'Password changed successfully!' });
-        setTimeout(() => setStatus(null), 3000);
+        const result = await changePassword({
+            currentPassword: passwordForm.currentPassword,
+            newPassword: passwordForm.newPassword
+        });
+
+        if (result.success) {
+            setIsEditingPassword(false);
+            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            setStatus({ type: 'success', message: result.message || 'Password changed successfully!' });
+            setTimeout(() => setStatus(null), 3000);
+        } else {
+            setStatus({ type: 'error', message: result.error || 'Failed to change password' });
+        }
     };
 
     return (
@@ -60,105 +67,107 @@ export default function Settings() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Shop Settings */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 h-fit">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                                <Store className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                {/* Shop Settings - Only for Owners */}
+                {user?.role !== 'admin' && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 h-fit">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                                    <Store className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Shop Details</h3>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Shop Details</h3>
+                            {!isEditing && (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                    title="Edit Details"
+                                >
+                                    <Pencil className="w-5 h-5" />
+                                </button>
+                            )}
                         </div>
-                        {!isEditing && (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                                title="Edit Details"
-                            >
-                                <Pencil className="w-5 h-5" />
-                            </button>
+
+                        {!isEditing ? (
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Shop Name</label>
+                                    <div className="text-lg font-medium text-gray-900 dark:text-white">{shopSettings.name}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Address</label>
+                                    <div className="text-lg font-medium text-gray-900 dark:text-white whitespace-pre-wrap">{shopSettings.address}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Contact Number</label>
+                                    <div className="text-lg font-medium text-gray-900 dark:text-white">{shopSettings.contact}</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSettingsSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Shop Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={settingsForm.name}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Address
+                                    </label>
+                                    <textarea
+                                        value={settingsForm.address}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        rows={3}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Contact Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={settingsForm.contact}
+                                        onChange={(e) => setSettingsForm({ ...settingsForm, contact: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium"
+                                    >
+                                        <Save className="w-4 h-4 mr-2" />
+                                        Save
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setSettingsForm(shopSettings);
+                                        }}
+                                        className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center justify-center font-medium"
+                                    >
+                                        <X className="w-4 h-4 mr-2" />
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
                         )}
                     </div>
-
-                    {!isEditing ? (
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Shop Name</label>
-                                <div className="text-lg font-medium text-gray-900 dark:text-white">{shopSettings.name}</div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Address</label>
-                                <div className="text-lg font-medium text-gray-900 dark:text-white whitespace-pre-wrap">{shopSettings.address}</div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Contact Number</label>
-                                <div className="text-lg font-medium text-gray-900 dark:text-white">{shopSettings.contact}</div>
-                            </div>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleSettingsSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Shop Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={settingsForm.name}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Address
-                                </label>
-                                <textarea
-                                    value={settingsForm.address}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    rows={3}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Contact Number
-                                </label>
-                                <input
-                                    type="text"
-                                    value={settingsForm.contact}
-                                    onChange={(e) => setSettingsForm({ ...settingsForm, contact: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    required
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    type="submit"
-                                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center font-medium"
-                                >
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Save
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsEditing(false);
-                                        setSettingsForm(shopSettings);
-                                    }}
-                                    className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center justify-center font-medium"
-                                >
-                                    <X className="w-4 h-4 mr-2" />
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    )}
-                </div>
+                )}
 
                 {/* Security Settings */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 h-fit">

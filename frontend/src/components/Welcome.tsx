@@ -31,7 +31,8 @@ export default function Welcome() {
                         {currentTime.toLocaleTimeString(undefined, {
                             hour12: false,
                             hour: '2-digit',
-                            minute: '2-digit'
+                            minute: '2-digit',
+                            second: '2-digit'
                         })}
                     </div>
                     <div className="date-display">
@@ -50,9 +51,18 @@ export default function Welcome() {
                         className="login-option-card"
                     >
                         <div className="text-xl font-semibold mb-2">Login to Dashboard</div>
-                        {/* <div className="flex items-center text-blue-500 font-medium">
+                        <div className="flex items-center text-blue-500 font-medium">
+                            Sign In <ChevronRight className="w-5 h-5 ml-1" />
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => setCurrentView('register')}
+                        className="login-option-card"
+                    >
+                        <div className="text-xl font-semibold mb-2">Create Account</div>
+                        <div className="flex items-center text-green-500 font-medium">
                             Get Started <ChevronRight className="w-5 h-5 ml-1" />
-                        </div> */}
+                        </div>
                     </button>
                 </div>
                 <div className="mt-12 text-sm text-gray-500 font-medium">

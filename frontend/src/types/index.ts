@@ -37,4 +37,7 @@ export interface ShopSettings {
   contact: string;
 }
 
-export type View = 'welcome' | 'login' | 'dashboard' | 'customers' | 'customer-detail' | 'add-purchase' | 'add-payment' | 'reminders' | 'settings';
+export type View = 'welcome' | 'login' | 'register' | 'dashboard' | 'customers' | 'customer-detail' | 'add-purchase' | 'add-payment' | 'reminders' | 'settings' | 'admin-panel' | 'admin-login';
+
+// Export auth types
+export * from './auth';

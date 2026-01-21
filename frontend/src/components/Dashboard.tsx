@@ -10,27 +10,24 @@ export default function Dashboard() {
 
   const customersWithPending = customers.filter(customer => getCustomerBalance(customer.id) > 0).length;
 
+  const todayDateOnly = new Date().toISOString().split('T')[0];
+
   const todayTransactions = transactions.filter(t => {
-    const today = new Date().toISOString().split('T')[0];
-    return t.date === today;
+    const txnDateOnly = new Date(t.date).toISOString().split('T')[0];
+    return txnDateOnly === todayDateOnly;
   }).length;
 
   const overdueCustomers = customers.filter(customer => {
     const balance = getCustomerBalance(customer.id);
     if (balance <= 0) return false;
 
-    const customerTxns = transactions.filter(t => t.customerId === customer.id && t.type === 'purchase');
-    if (customerTxns.length === 0) return false;
+    const hasOverduePurchase = transactions.some(t => {
+      if (t.customerId !== customer.id || t.type !== 'purchase' || !t.dueDate) return false;
+      const dueDateOnly = new Date(t.dueDate).toISOString().split('T')[0];
+      return dueDateOnly < todayDateOnly;
+    });
 
-    const lastPurchase = customerTxns.sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    )[0];
-
-    const daysSinceLastPurchase = Math.floor(
-      (new Date().getTime() - new Date(lastPurchase.date).getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    return daysSinceLastPurchase > 30;
+    return hasOverduePurchase;
   }).length;
 
   const stats = [

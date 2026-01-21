@@ -1,26 +1,39 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { Lock, User, ArrowRight, ArrowLeft } from 'lucide-react';
-import './Welcome.css'; // Reusing the same styles/backgrounds
+import { Lock, Mail, ArrowRight, ArrowLeft } from 'lucide-react';
+import './Welcome.css';
 
 export default function Login() {
-    const { setCurrentView, adminPassword } = useApp();
-    const [username, setUsername] = useState('');
+    const { login, logout } = useAuth();
+    const { setCurrentView } = useApp();
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (username === 'admin' && password === adminPassword) {
+        setError('');
+        setLoading(true);
+
+        const result = await login({ email, password });
+        setLoading(false);
+
+        if (result.success) {
+            if (result.role === 'admin') {
+                setError('Staff/Admin logins are restricted here. Please use the Admin Portal.');
+                logout(); // Logout immediately
+                return;
+            }
             setCurrentView('dashboard');
         } else {
-            setError('Invalid credentials');
+            setError(result.error || 'Login failed');
         }
     };
 
     return (
         <div className="welcome-container">
-            {/* Reusing Animated Background */}
             <div className="welcome-bg-elements">
                 <div className="blob"></div>
                 <div className="blob"></div>
@@ -41,15 +54,15 @@ export default function Login() {
                     )}
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Username</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Email</label>
                         <div className="relative">
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 rounded-lg glass-input focus:outline-none"
-                                placeholder="Enter username"
+                                placeholder="Enter your email"
                                 required
                             />
                         </div>
@@ -72,14 +85,24 @@ export default function Login() {
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-all hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2"
+                        disabled={loading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-all hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span>Sign In</span>
-                        <ArrowRight className="w-5 h-5" />
+                        <span>{loading ? 'Signing In...' : 'Sign In'}</span>
+                        {!loading && <ArrowRight className="w-5 h-5" />}
                     </button>
                 </form>
 
-                <div className="mt-8 text-center">
+                <div className="mt-8 text-center space-y-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Don't have an account?{' '}
+                        <button
+                            onClick={() => setCurrentView('register')}
+                            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                        >
+                            Create one here
+                        </button>
+                    </p>
                     <button
                         onClick={() => setCurrentView('welcome')}
                         className="text-sm text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 flex items-center justify-center mx-auto transition-colors"

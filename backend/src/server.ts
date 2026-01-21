@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './routes/api';
+import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
 
 dotenv.config();
 
@@ -15,6 +17,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api', apiRoutes);
 
 // Database Connection

@@ -1,6 +1,8 @@
+import { useAuth } from './context/AuthContext';
 import { useApp } from './context/AppContext';
 import Welcome from './components/Welcome';
 import Login from './components/Login';
+import Register from './components/Register';
 import Navigation from './components/Navigation';
 import Dashboard from './components/Dashboard';
 import CustomersList from './components/CustomersList';
@@ -9,9 +11,28 @@ import AddPurchase from './components/AddPurchase';
 import AddPayment from './components/AddPayment';
 import Reminders from './components/Reminders';
 import Settings from './components/Settings';
+import AdminPanel from './components/AdminPanel';
+import AdminLogin from './components/AdminLogin';
+import { useEffect } from 'react';
 
 function App() {
-  const { currentView } = useApp();
+  const { currentView, setCurrentView } = useApp();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (window.location.pathname === '/admin') {
+      setCurrentView('admin-login');
+    }
+  }, [setCurrentView]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    );
+  }
 
   const renderView = () => {
     switch (currentView) {
@@ -19,6 +40,10 @@ function App() {
         return <Welcome />;
       case 'login':
         return <Login />;
+      case 'admin-login':
+        return <AdminLogin />;
+      case 'register':
+        return <Register />;
       case 'dashboard':
         return <Dashboard />;
       case 'customers':
@@ -33,6 +58,8 @@ function App() {
         return <Reminders />;
       case 'settings':
         return <Settings />;
+      case 'admin-panel':
+        return <AdminPanel />;
       default:
         return <Dashboard />;
     }
@@ -40,7 +67,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {currentView !== 'welcome' && currentView !== 'login' && <Navigation />}
+      {isAuthenticated && currentView !== 'welcome' && currentView !== 'login' && currentView !== 'register' && currentView !== 'admin-login' && <Navigation />}
       {renderView()}
     </div>
   );

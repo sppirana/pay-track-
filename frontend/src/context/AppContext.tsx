@@ -18,8 +18,6 @@ interface AppContextType {
   toggleTheme: () => void;
   shopSettings: ShopSettings;
   updateShopSettings: (settings: ShopSettings) => void;
-  adminPassword: string;
-  updateAdminPassword: (password: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -40,15 +38,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [shopSettings, setShopSettings] = useState<ShopSettings>(() => {
     const saved = localStorage.getItem('shopSettings');
     return saved ? JSON.parse(saved) : {
-      name: 'Credit Manager',
+      name: 'PayTrack',
       address: 'Shop Address',
       contact: 'Contact Number'
     };
   });
 
-  const [adminPassword, setAdminPassword] = useState(() => {
-    return localStorage.getItem('adminPassword') || 'admin'; // Default password
-  });
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
   // Save navigation state
   useEffect(() => {
@@ -84,18 +87,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('shopSettings', JSON.stringify(settings));
   };
 
-  const updateAdminPassword = (password: string) => {
-    setAdminPassword(password);
-    localStorage.setItem('adminPassword', password);
-  };
-
-  // Fetch initial data
+  // Fetch initial data when authentication is available
   useEffect(() => {
     const fetchData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
       try {
         const [custRes, txRes] = await Promise.all([
-          fetch(`${API_URL}/customers`),
-          fetch(`${API_URL}/transactions`)
+          fetch(`${API_URL}/customers`, { headers: getAuthHeaders() }),
+          fetch(`${API_URL}/transactions`, { headers: getAuthHeaders() })
         ]);
 
         if (custRes.ok && txRes.ok) {
@@ -105,6 +106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Map _id to id for frontend compatibility
           setCustomers(custData.map((c: any) => ({ ...c, id: c._id })));
           setTransactions(txData.map((t: any) => ({ ...t, id: t._id })));
+        } else if (custRes.status === 401 || txRes.status === 401) {
+          setCurrentView('login');
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -118,13 +121,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${API_URL}/customers`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(customer),
       });
 
       if (res.ok) {
         const newCustomer = await res.json();
         setCustomers([...customers, { ...newCustomer, id: newCustomer._id }]);
+      } else if (res.status === 401) {
+        setCurrentView('login');
       }
     } catch (error) {
       console.error('Failed to add customer:', error);
@@ -135,13 +140,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${API_URL}/transactions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(transaction),
       });
 
       if (res.ok) {
         const newTransaction = await res.json();
         setTransactions([...transactions, { ...newTransaction, id: newTransaction._id }]);
+      } else if (res.status === 401) {
+        setCurrentView('login');
       }
     } catch (error) {
       console.error('Failed to add transaction:', error);
@@ -152,13 +159,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${API_URL}/transactions/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updates),
       });
 
       if (res.ok) {
         const updatedTx = await res.json();
         setTransactions(transactions.map(t => t.id === id ? { ...updatedTx, id: updatedTx._id } : t));
+      } else if (res.status === 401) {
+        setCurrentView('login');
       }
     } catch (error) {
       console.error('Failed to update transaction:', error);
@@ -169,10 +178,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${API_URL}/transactions/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
 
       if (res.ok) {
         setTransactions(transactions.filter(t => t.id !== id));
+      } else if (res.status === 401) {
+        setCurrentView('login');
       }
     } catch (error) {
       console.error('Failed to delete transaction:', error);
@@ -214,9 +226,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         theme,
         toggleTheme,
         shopSettings,
-        updateShopSettings,
-        adminPassword,
-        updateAdminPassword
+        updateShopSettings
       }}
     >
       {children}
