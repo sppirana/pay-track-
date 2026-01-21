@@ -1,16 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { Shield, Lock, Mail, ArrowRight, AlertTriangle } from 'lucide-react';
 import './Welcome.css';
 
 export default function AdminLogin() {
-    const { login } = useAuth();
+    const { login, isAuthenticated, user } = useAuth();
     const { setCurrentView } = useApp();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated && user?.role === 'admin') {
+            setCurrentView('admin-panel');
+        }
+    }, [isAuthenticated, user, setCurrentView]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -21,6 +21,15 @@ function App() {
 
   useEffect(() => {
     if (window.location.pathname === '/admin') {
+      // If already authenticated as admin, go straight to panel
+      if (isAuthenticated && ((useAuth as any)().user?.role === 'admin' || (localStorage.getItem('user_role') === 'admin'))) {
+        // Note: Assuming we can get user role from context or local storage to be safe for initial load
+        // The cleanest way is to let AdminLogin handle the redirect if already logged in, 
+        // OR update this logic. Let's update this logic to check context.
+        // Since 'user' object might be null initially before checkAuth completes, we rely on checkAuth to set isAuthenticated.
+        // But this useEffect runs on mount.
+      }
+      // Actually, safest to just set it to admin-login, and let AdminLogin redirect if logged in.
       setCurrentView('admin-login');
     }
   }, [setCurrentView]);

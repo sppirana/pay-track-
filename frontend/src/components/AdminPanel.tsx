@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Users, UserCheck, UserX, UserPlus, Trash2, Search, CheckCircle, XCircle } from 'lucide-react';
+import { Users, UserCheck, UserX, UserPlus, Trash2, Search, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { User, UserStats, UserStatus } from '../types/auth';
 
 const API_URL = '/api';
@@ -158,9 +158,19 @@ export default function AdminPanel() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Panel</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Manage user accounts and access requests</p>
+                <div className="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Panel</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Manage user accounts and access requests</p>
+                    </div>
+                    <button
+                        onClick={() => { fetchStats(); fetchUsers(); }}
+                        disabled={loading}
+                        className="p-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg shadow border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all disabled:opacity-50"
+                        title="Refresh Data"
+                    >
+                        <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
                 </div>
 
                 {/* Notification */}
