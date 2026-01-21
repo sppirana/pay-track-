@@ -65,7 +65,7 @@ export default function Welcome() {
                         </div>
                     </button>
                 </div>
-                <div className="mt-12 text-sm text-gray-500 font-medium">
+                {/* <div className="mt-12 text-sm text-gray-500 font-medium">
                     Developed by{' '}
                     <a
                         href="https://www.linkedin.com/in/piranavansivanesan"
@@ -75,7 +75,7 @@ export default function Welcome() {
                     >
                         Piranav Dev
                     </a>
-                </div>
+                </div> */}
             </div>
         </div>
     );
