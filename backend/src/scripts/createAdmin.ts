@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { User, UserRole, UserStatus } from './src/models/User';
+import { User, UserRole, UserStatus } from '../models/User';
 
 dotenv.config();
 
