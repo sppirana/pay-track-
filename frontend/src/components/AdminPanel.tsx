@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Users, UserCheck, UserX, UserPlus, Trash2, Search, CheckCircle, XCircle } from 'lucide-react';
 import { User, UserStats, UserStatus } from '../types/auth';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 export default function AdminPanel() {
     const { token } = useAuth();
