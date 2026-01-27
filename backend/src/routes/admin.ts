@@ -23,9 +23,23 @@ router.get('/users', async (req: AuthRequest, res: Response) => {
 
         const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
 
+        // Enrich users with stats
+        const enrichedUsers = await Promise.all(users.map(async (user) => {
+            const customerCount = await Customer.countDocuments({ userId: user._id });
+            const lastTransaction = await Transaction.findOne({ userId: user._id })
+                .sort({ date: -1 })
+                .select('date');
+
+            return {
+                ...user.toObject(),
+                customerCount,
+                lastActive: lastTransaction ? lastTransaction.date : user.createdAt
+            };
+        }));
+
         res.json({
-            users,
-            count: users.length
+            users: enrichedUsers,
+            count: enrichedUsers.length
         });
     } catch (error) {
         console.error('Get users error:', error);

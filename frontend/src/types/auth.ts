@@ -18,6 +18,8 @@ export interface User {
     role: UserRole;
     status: UserStatus;
     createdAt: string;
+    customerCount?: number;
+    lastActive?: string;
 }
 
 export interface AuthResponse {

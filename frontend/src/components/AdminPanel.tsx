@@ -309,7 +309,8 @@ export default function AdminPanel() {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Registered</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customers</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Activity</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
@@ -331,8 +332,14 @@ export default function AdminPanel() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">{getStatusBadge(user.status)}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center text-sm font-semibold text-gray-900 dark:text-white">
+                                                    <Users className="w-4 h-4 mr-2 text-blue-500" />
+                                                    {user.customerCount || 0}
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                                {new Date(user.createdAt).toLocaleDateString()}
+                                                {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : 'Never'}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex space-x-2">
