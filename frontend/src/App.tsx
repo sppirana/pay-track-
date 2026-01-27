@@ -13,6 +13,7 @@ import Reminders from './components/Reminders';
 import Settings from './components/Settings';
 import AdminPanel from './components/AdminPanel';
 import AdminLogin from './components/AdminLogin';
+import Landing from './components/Landing';
 import { useEffect } from 'react';
 
 function App() {
@@ -45,6 +46,8 @@ function App() {
 
   const renderView = () => {
     switch (currentView) {
+      case 'landing':
+        return <Landing />;
       case 'welcome':
         return <Welcome />;
       case 'login':
@@ -76,7 +79,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {isAuthenticated && currentView !== 'welcome' && currentView !== 'login' && currentView !== 'register' && currentView !== 'admin-login' && <Navigation />}
+      {isAuthenticated && currentView !== 'landing' && currentView !== 'welcome' && currentView !== 'login' && currentView !== 'register' && currentView !== 'admin-login' && <Navigation />}
       {renderView()}
     </div>
   );

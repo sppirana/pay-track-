@@ -31,7 +31,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [currentView, setCurrentView] = useState<View>(() => {
-    return (localStorage.getItem('currentView') as View) || 'welcome';
+    return (localStorage.getItem('currentView') as View) || 'landing';
   });
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(() => {
     return localStorage.getItem('selectedCustomerId') || null;
