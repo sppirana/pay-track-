@@ -4,9 +4,10 @@ import { useApp } from '../context/AppContext';
 import { Transaction } from '../types';
 
 export default function CustomerDetail() {
-  const { customers, selectedCustomerId, getCustomerBalance, getCustomerTransactions, setCurrentView, updateTransaction, deleteTransaction } = useApp();
+  const { customers, selectedCustomerId, getCustomerBalance, getCustomerTransactions, setCurrentView, updateTransaction, deleteTransaction, deleteCustomer } = useApp();
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!selectedCustomerId) {
     return (
@@ -52,15 +53,33 @@ export default function CustomerDetail() {
     }
   };
 
+  const handleDeleteCustomer = async () => {
+    if (selectedCustomerId) {
+      await deleteCustomer(selectedCustomerId);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <button
-        onClick={() => setCurrentView('customers')}
-        className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Customers
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => setCurrentView('customers')}
+          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Customers
+        </button>
+
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all flex items-center gap-2"
+          title="Remove customer"
+        >
+          <Trash2 className="w-5 h-5" />
+          <span className="text-sm font-medium">Remove Customer</span>
+        </button>
+      </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <div className="flex items-start justify-between">
@@ -316,6 +335,34 @@ export default function CustomerDetail() {
                 className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Remove Customer?</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Are you sure you want to remove <strong>{customer.name}</strong>? All associated transactions will be permanently deleted. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteCustomer}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+              >
+                Yes, Remove
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
+              >
+                No, Keep
               </button>
             </div>
           </div>

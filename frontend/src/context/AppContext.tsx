@@ -13,6 +13,7 @@ interface AppContextType {
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
   updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  deleteCustomer: (id: string) => Promise<void>;
   getCustomerBalance: (customerId: string) => number;
   getCustomerTransactions: (customerId: string) => Transaction[];
   theme: 'light' | 'dark';
@@ -195,6 +196,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteCustomer = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/customers/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (res.ok) {
+        setCustomers(customers.filter(c => c.id !== id));
+        setTransactions(transactions.filter(t => t.customerId !== id));
+        if (selectedCustomerId === id) {
+          setSelectedCustomerId(null);
+          setCurrentView('dashboard');
+        }
+      } else if (res.status === 401) {
+        setCurrentView('login');
+      }
+    } catch (error) {
+      console.error('Failed to delete customer:', error);
+    }
+  };
+
   const getCustomerBalance = (customerId: string): number => {
     const customerTransactions = transactions.filter(t => t.customerId === customerId);
     return customerTransactions.reduce((balance, transaction) => {
@@ -225,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addTransaction,
         updateTransaction,
         deleteTransaction,
+        deleteCustomer,
         getCustomerBalance,
         getCustomerTransactions,
         theme,

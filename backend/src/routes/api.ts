@@ -31,6 +31,33 @@ router.post('/customers', async (req: AuthRequest, res) => {
     }
 });
 
+router.delete('/customers/:id', async (req: AuthRequest, res) => {
+    try {
+        const customerId = req.params.id;
+        const userId = req.user?.id;
+
+        // Delete the customer
+        const customer = await Customer.findOneAndDelete({
+            _id: customerId,
+            userId: userId
+        });
+
+        if (!customer) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        // Delete all transactions associated with this customer
+        await Transaction.deleteMany({
+            customerId: customerId,
+            userId: userId
+        });
+
+        res.json({ message: 'Customer and associated transactions deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete customer' });
+    }
+});
+
 // TRANSACTION ROUTES
 router.get('/transactions', async (req: AuthRequest, res) => {
     try {
