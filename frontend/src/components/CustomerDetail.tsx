@@ -137,30 +137,16 @@ export default function CustomerDetail() {
               </div>
             </div>
           </div>
-            <div className="flex flex-col items-end gap-2">
-              <button
-                onClick={handleEditCustomer}
-                className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all flex items-center gap-2"
-                title="Edit customer details"
-              >
-                <Pencil className="w-5 h-5" />
-                <span className="text-sm font-medium">Edit</span>
-              </button>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Balance</p>
-              <p className={`text-4xl font-bold ${balance > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                Rs {balance.toLocaleString()}
-              </p>
-              {balance > 0 && (
-                <span className="inline-block mt-2 px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-sm font-medium rounded-full">
-                  Outstanding
-                </span>
-              )}
-              {balance === 0 && (
-                <span className="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-sm font-medium rounded-full">
-                  Paid in Full
-                </span>
-              )}
-            </div>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              onClick={handleEditCustomer}
+              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all flex items-center gap-2"
+              title="Edit customer details"
+            >
+              <Pencil className="w-5 h-5" />
+              <span className="text-sm font-medium">Edit</span>
+            </button>
+          </div>
           <div className="text-right">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Balance</p>
             <p className={`text-4xl font-bold ${balance > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
