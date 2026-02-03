@@ -218,6 +218,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+    const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+      try {
+        const res = await fetch(`${API_URL}/customers/${id}`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(updates),
+        });
+
+        if (res.ok) {
+          const updatedCustomer = await res.json();
+          setCustomers(customers.map(c => c.id === id ? { ...updatedCustomer, id: updatedCustomer._id } : c));
+        } else if (res.status === 401) {
+          setCurrentView('login');
+        }
+      } catch (error) {
+        console.error('Failed to update customer:', error);
+      }
+    };
+
   const getCustomerBalance = (customerId: string): number => {
     const customerTransactions = transactions.filter(t => t.customerId === customerId);
     return customerTransactions.reduce((balance, transaction) => {
@@ -249,6 +268,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateTransaction,
         deleteTransaction,
         deleteCustomer,
+          updateCustomer,
         getCustomerBalance,
         getCustomerTransactions,
         theme,

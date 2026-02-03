@@ -3,8 +3,16 @@ import { ArrowLeft, Phone, Mail, Calendar, Plus, Wallet, Pencil, Trash2, X, Save
 import { useApp } from '../context/AppContext';
 import { Transaction } from '../types';
 
+interface EditCustomerState {
+  name: string;
+  contact: string;
+  email?: string;
+}
+
 export default function CustomerDetail() {
-  const { customers, selectedCustomerId, getCustomerBalance, getCustomerTransactions, setCurrentView, updateTransaction, deleteTransaction, deleteCustomer } = useApp();
+  const { customers, selectedCustomerId, getCustomerBalance, getCustomerTransactions, setCurrentView, updateTransaction, deleteTransaction, deleteCustomer, updateCustomer } = useApp();
+  const [editingCustomer, setEditingCustomer] = useState<EditCustomerState | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -28,6 +36,28 @@ export default function CustomerDetail() {
 
   const balance = getCustomerBalance(customer.id);
   const transactions = getCustomerTransactions(customer.id);
+
+    const handleEditCustomer = () => {
+      setEditingCustomer({
+        name: customer.name,
+        contact: customer.contact,
+        email: customer.email || ''
+      });
+    };
+
+    const handleEditCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!editingCustomer) return;
+      setEditingCustomer({ ...editingCustomer, [e.target.name]: e.target.value });
+    };
+
+    const handleEditCustomerSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editingCustomer) return;
+      setEditLoading(true);
+      await updateCustomer(customer.id, editingCustomer);
+      setEditLoading(false);
+      setEditingCustomer(null);
+    };
 
   const handleUpdateTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +137,30 @@ export default function CustomerDetail() {
               </div>
             </div>
           </div>
+            <div className="flex flex-col items-end gap-2">
+              <button
+                onClick={handleEditCustomer}
+                className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all flex items-center gap-2"
+                title="Edit customer details"
+              >
+                <Pencil className="w-5 h-5" />
+                <span className="text-sm font-medium">Edit</span>
+              </button>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Balance</p>
+              <p className={`text-4xl font-bold ${balance > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                Rs {balance.toLocaleString()}
+              </p>
+              {balance > 0 && (
+                <span className="inline-block mt-2 px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-sm font-medium rounded-full">
+                  Outstanding
+                </span>
+              )}
+              {balance === 0 && (
+                <span className="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 text-sm font-medium rounded-full">
+                  Paid in Full
+                </span>
+              )}
+            </div>
           <div className="text-right">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Balance</p>
             <p className={`text-4xl font-bold ${balance > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
@@ -313,21 +367,72 @@ export default function CustomerDetail() {
         </div>
       )}
 
-      {deletingTransactionId && (
+      {editingCustomer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete Transaction?</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Are you sure you want to delete this transaction? This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
+          <form onSubmit={handleEditCustomerSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Customer Details</h3>
               <button
-                onClick={confirmDelete}
-                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                type="button"
+                onClick={() => setEditingCustomer(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editingCustomer.name}
+                  onChange={handleEditCustomerChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contact</label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={editingCustomer.contact}
+                  onChange={handleEditCustomerChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editingCustomer.email}
+                  onChange={handleEditCustomerChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingCustomer(null)}
+                className="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editLoading}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {editLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
                 Delete
               </button>
               <button
