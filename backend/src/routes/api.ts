@@ -31,6 +31,23 @@ router.post('/customers', async (req: AuthRequest, res) => {
     }
 });
 
+// Edit customer details
+router.put('/customers/:id', async (req: AuthRequest, res) => {
+    try {
+        const customer = await Customer.findOne({
+            _id: req.params.id,
+            userId: req.user?.id
+        });
+        if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+        Object.assign(customer, req.body);
+        await customer.save();
+        res.json(customer);
+    } catch (err) {
+        res.status(400).json({ error: 'Failed to update customer' });
+    }
+});
+
 router.delete('/customers/:id', async (req: AuthRequest, res) => {
     try {
         const customerId = req.params.id;
