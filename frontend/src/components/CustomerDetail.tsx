@@ -433,18 +433,6 @@ export default function CustomerDetail() {
           </form>
         </div>
       )}
-                Delete
-              </button>
-              <button
-                onClick={() => setDeletingTransactionId(null)}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
