@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Search, Eye, Plus, Phone, Mail, Filter } from 'lucide-react';
+import { Search, Eye, Plus, Phone, Mail, Filter, Pencil } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export default function CustomersList() {
-  const { customers, transactions, getCustomerBalance, setCurrentView, setSelectedCustomerId } = useApp();
+  const { customers, transactions, getCustomerBalance, setCurrentView, setSelectedCustomerId, updateCustomer } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [minBalance, setMinBalance] = useState('');
   const [maxBalance, setMaxBalance] = useState('');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: '', contact: '', email: '' });
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState({ name: '', contact: '', email: '' });
 
   const filteredCustomers = customers.filter(customer => {
     const matchesSearch = customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -42,6 +44,27 @@ export default function CustomersList() {
   const handleViewCustomer = (customerId: string) => {
     setSelectedCustomerId(customerId);
     setCurrentView('customer-detail');
+  };
+
+  const handleEditCustomer = (customer: any) => {
+    setEditingCustomerId(customer.id);
+    setEditingCustomer({
+      name: customer.name,
+      contact: customer.contact,
+      email: customer.email || ''
+    });
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingCustomerId) {
+      await updateCustomer(editingCustomerId, editingCustomer);
+      setEditingCustomerId(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCustomerId(null);
   };
 
   const { addCustomer } = useApp();
@@ -116,6 +139,54 @@ export default function CustomersList() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {editingCustomerId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Edit Customer</h3>
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Customer Name *"
+                value={editingCustomer.name}
+                onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
+                required
+              />
+              <input
+                type="tel"
+                placeholder="Contact Number *"
+                value={editingCustomer.contact}
+                onChange={(e) => setEditingCustomer({ ...editingCustomer, contact: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
+                required
+              />
+              <input
+                type="email"
+                placeholder="Email (optional)"
+                value={editingCustomer.email}
+                onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -222,13 +293,22 @@ export default function CustomersList() {
                       {getLastTransactionDate(customer.id)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={() => handleViewCustomer(customer.id)}
-                        className="flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleViewCustomer(customer.id)}
+                          className="flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleEditCustomer(customer)}
+                          className="flex items-center px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <Pencil className="w-4 h-4 mr-1" />
+                          Edit
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

@@ -41,6 +41,48 @@ router.post('/customers', (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(400).json({ error: 'Failed to create customer' });
     }
 }));
+// Edit customer details
+router.put('/customers/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const customer = yield Customer_1.Customer.findOne({
+            _id: req.params.id,
+            userId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id
+        });
+        if (!customer)
+            return res.status(404).json({ error: 'Customer not found' });
+        Object.assign(customer, req.body);
+        yield customer.save();
+        res.json(customer);
+    }
+    catch (err) {
+        res.status(400).json({ error: 'Failed to update customer' });
+    }
+}));
+router.delete('/customers/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const customerId = req.params.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        // Delete the customer
+        const customer = yield Customer_1.Customer.findOneAndDelete({
+            _id: customerId,
+            userId: userId
+        });
+        if (!customer) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+        // Delete all transactions associated with this customer
+        yield Transaction_1.Transaction.deleteMany({
+            customerId: customerId,
+            userId: userId
+        });
+        res.json({ message: 'Customer and associated transactions deleted successfully' });
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Failed to delete customer' });
+    }
+}));
 // TRANSACTION ROUTES
 router.get('/transactions', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;

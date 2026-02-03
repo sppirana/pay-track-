@@ -31,9 +31,17 @@ router.get('/users', (req, res) => __awaiter(void 0, void 0, void 0, function* (
             filter.status = status;
         }
         const users = yield User_1.User.find(filter).select('-password').sort({ createdAt: -1 });
+        // Enrich users with stats
+        const enrichedUsers = yield Promise.all(users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+            const customerCount = yield Customer_1.Customer.countDocuments({ userId: user._id });
+            const lastTransaction = yield Transaction_1.Transaction.findOne({ userId: user._id })
+                .sort({ date: -1 })
+                .select('date');
+            return Object.assign(Object.assign({}, user.toObject()), { customerCount, lastActive: lastTransaction ? lastTransaction.date : user.createdAt });
+        })));
         res.json({
-            users,
-            count: users.length
+            users: enrichedUsers,
+            count: enrichedUsers.length
         });
     }
     catch (error) {
