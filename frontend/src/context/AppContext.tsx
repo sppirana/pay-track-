@@ -14,6 +14,7 @@ interface AppContextType {
   updateTransaction: (id: string, transaction: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   deleteCustomer: (id: string) => Promise<void>;
+  updateCustomer: (id: string, updates: Partial<Customer>) => Promise<void>;
   getCustomerBalance: (customerId: string) => number;
   getCustomerTransactions: (customerId: string) => Transaction[];
   theme: 'light' | 'dark';
@@ -55,6 +56,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  // Helper function to handle authentication errors
+  const handleAuthError = () => {
+    console.warn('Authentication failed, clearing session and redirecting to login');
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentView');
+    localStorage.removeItem('selectedCustomerId');
+    setCustomers([]);
+    setTransactions([]);
+    setCurrentView('login');
+  };
+
   // Save navigation state
   useEffect(() => {
     localStorage.setItem('currentView', currentView);
@@ -94,6 +106,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!token || !isAuthenticated) {
       setCustomers([]);
       setTransactions([]);
+      // If not authenticated and not on public pages, redirect to login
+      if (!isAuthenticated && !['landing', 'login', 'register', 'welcome', 'admin-login'].includes(currentView)) {
+        console.warn('Not authenticated, redirecting to login');
+        setCurrentView('login');
+      }
       return;
     }
 
@@ -112,7 +129,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setCustomers(custData.map((c: any) => ({ ...c, id: c._id })));
           setTransactions(txData.map((t: any) => ({ ...t, id: t._id })));
         } else if (custRes.status === 401 || txRes.status === 401) {
-          setCurrentView('login');
+          // Token expired or invalid, clear auth and redirect
+          handleAuthError();
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -134,7 +152,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const newCustomer = await res.json();
         setCustomers([...customers, { ...newCustomer, id: newCustomer._id }]);
       } else if (res.status === 401) {
-        setCurrentView('login');
+        handleAuthError();
       }
     } catch (error) {
       console.error('Failed to add customer:', error);
@@ -153,7 +171,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const newTransaction = await res.json();
         setTransactions([...transactions, { ...newTransaction, id: newTransaction._id }]);
       } else if (res.status === 401) {
-        setCurrentView('login');
+        handleAuthError();
       }
     } catch (error) {
       console.error('Failed to add transaction:', error);
@@ -172,7 +190,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const updatedTx = await res.json();
         setTransactions(transactions.map(t => t.id === id ? { ...updatedTx, id: updatedTx._id } : t));
       } else if (res.status === 401) {
-        setCurrentView('login');
+        handleAuthError();
       }
     } catch (error) {
       console.error('Failed to update transaction:', error);
@@ -189,7 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         setTransactions(transactions.filter(t => t.id !== id));
       } else if (res.status === 401) {
-        setCurrentView('login');
+        handleAuthError();
       }
     } catch (error) {
       console.error('Failed to delete transaction:', error);
@@ -211,7 +229,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setCurrentView('dashboard');
         }
       } else if (res.status === 401) {
-        setCurrentView('login');
+        handleAuthError();
       }
     } catch (error) {
       console.error('Failed to delete customer:', error);
@@ -230,7 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const updatedCustomer = await res.json();
           setCustomers(customers.map(c => c.id === id ? { ...updatedCustomer, id: updatedCustomer._id } : c));
         } else if (res.status === 401) {
-          setCurrentView('login');
+          handleAuthError();
         }
       } catch (error) {
         console.error('Failed to update customer:', error);

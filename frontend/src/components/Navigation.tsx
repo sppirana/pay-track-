@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, Bell, Moon, Sun, LogOut, Settings, UserCircle, Shield, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Bell, Moon, Sun, LogOut, Settings, UserCircle, Shield, Menu, X, RefreshCw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { View } from '../types';
@@ -9,6 +9,7 @@ export default function Navigation() {
   const { user, logout, token } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -42,6 +43,13 @@ export default function Navigation() {
     logout();
     setCurrentView('welcome');
     setIsMenuOpen(false);
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    // Dispatch a custom event that AdminPanel can listen to
+    window.dispatchEvent(new CustomEvent('admin-refresh'));
+    setTimeout(() => setIsRefreshing(false), 1000);
   };
 
   const navItems = [
@@ -127,6 +135,18 @@ export default function Navigation() {
             </div>
 
             <div className="border-l border-gray-200 dark:border-gray-700 h-6 mx-2" />
+
+            {currentView === 'admin-panel' && (
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Refresh"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            )}
 
             <button
               onClick={handleLogout}

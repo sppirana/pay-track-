@@ -50,14 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(data.user);
                 setToken(storedToken);
             } else {
-                // Token invalid, clear it
+                // Token invalid or expired, clear it and force re-login
+                console.warn('Token expired or invalid, clearing authentication');
                 localStorage.removeItem('token');
+                localStorage.removeItem('currentView');
+                localStorage.removeItem('selectedCustomerId');
                 setToken(null);
                 setUser(null);
             }
         } catch (error) {
             console.error('Auth check failed:', error);
             localStorage.removeItem('token');
+            localStorage.removeItem('currentView');
+            localStorage.removeItem('selectedCustomerId');
             setToken(null);
             setUser(null);
         } finally {
